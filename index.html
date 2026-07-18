@@ -9,27 +9,27 @@
 <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:none; user-select:none; -webkit-user-select:none; }
-  html, body { width:100%; height:100%; overflow:hidden; background:#0a0e14; font-family:'BIZ UDPGothic', sans-serif; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#eef5f2; font-family:'BIZ UDPGothic', sans-serif; }
   #canvas-container { position:fixed; inset:0; }
   canvas { display:block; width:100%; height:100%; }
 
   .score-panel {
-    position:fixed; left:50%; transform:translateX(-50%);
-    display:flex; align-items:center; gap:14px;
-    padding:8px 20px; border-radius:16px;
-    background:rgba(10,14,20,0.55); backdrop-filter:blur(6px);
-    color:#eaf6ff; z-index:10; pointer-events:none;
+    position:fixed; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:10px 14px; border-radius:16px;
+    background:rgba(20,26,24,0.62); backdrop-filter:blur(6px);
+    z-index:10; pointer-events:none;
   }
-  #panel-top { top:14px; transform:translateX(-50%) rotate(180deg); }
-  #panel-bottom { bottom:14px; }
-  .score-label { font-size:13px; opacity:0.75; letter-spacing:0.05em; }
+  #panel-left { left:12px; }
+  #panel-right { right:12px; }
+  .score-label { font-size:12px; opacity:0.9; letter-spacing:0.05em; font-weight:700; }
   .score-value { font-size:34px; font-weight:700; min-width:38px; text-align:center; }
-  .score-value.top-color { color:#ff8a6b; }
-  .score-value.bottom-color { color:#6bc7ff; }
+  .color-left { color:#34c96e; }
+  .color-right { color:#ff8c42; }
 
   #center-hint {
     position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-    color:rgba(234,246,255,0.18); font-size:12px; letter-spacing:0.3em;
+    color:rgba(30,50,45,0.2); font-size:12px; letter-spacing:0.3em;
     pointer-events:none; z-index:5; white-space:nowrap;
   }
 
@@ -37,52 +37,65 @@
     position:fixed; top:14px; right:14px; z-index:20;
     min-width:44px; min-height:44px; padding:0 16px;
     border:none; border-radius:12px;
-    background:rgba(255,255,255,0.12); color:#eaf6ff;
+    background:rgba(20,26,24,0.55); color:#f3faf6;
     font-family:'BIZ UDPGothic', sans-serif; font-size:14px;
     display:flex; align-items:center; justify-content:center;
     backdrop-filter:blur(6px);
   }
-  #restart-btn:active { background:rgba(255,255,255,0.28); }
+  #restart-btn:active { background:rgba(20,26,24,0.75); }
 
   #overlay {
     position:fixed; inset:0; z-index:30; display:none;
     align-items:center; justify-content:center; flex-direction:column; gap:22px;
-    background:rgba(4,6,10,0.72); backdrop-filter:blur(4px);
+    background:rgba(10,16,14,0.75); backdrop-filter:blur(4px);
   }
   #overlay.show { display:flex; }
-  .win-banner { color:#eaf6ff; text-align:center; font-weight:700; }
-  #win-top { font-size:26px; transform:rotate(180deg); color:#ff8a6b; }
-  #win-bottom { font-size:26px; color:#6bc7ff; }
+  #win-text { font-size:30px; font-weight:700; text-align:center; }
   #rematch-btn {
     min-width:160px; min-height:52px; padding:0 28px;
     border:none; border-radius:26px; font-size:18px; font-weight:700;
     font-family:'BIZ UDPGothic', sans-serif;
-    background:linear-gradient(135deg,#6bc7ff,#ff8a6b); color:#0a0e14;
+    background:linear-gradient(135deg,#34c96e,#ff8c42); color:#12201b;
   }
   #rematch-btn:active { filter:brightness(0.88); }
 
   #serve-banner {
     position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-    color:#eaf6ff; font-size:20px; font-weight:700; letter-spacing:0.1em;
+    color:#12201b; font-size:20px; font-weight:700; letter-spacing:0.1em;
     z-index:15; pointer-events:none; opacity:0; transition:opacity 0.25s;
-    text-shadow:0 2px 12px rgba(0,0,0,0.6);
+    text-shadow:0 2px 10px rgba(255,255,255,0.7);
   }
   #serve-banner.show { opacity:1; }
+
+  #rotate-hint {
+    position:fixed; inset:0; z-index:50; display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    background:#12201b; color:#f3faf6; text-align:center; padding:24px;
+  }
+  #rotate-hint .icon { font-size:44px; }
+  @media (orientation: portrait) {
+    #rotate-hint { display:flex; }
+  }
 </style>
 </head>
 <body>
 
 <div id="canvas-container"></div>
 
+<div id="rotate-hint">
+  <div class="icon">↻</div>
+  <div>iPadを横向きにしてください</div>
+</div>
+
 <div id="center-hint">FIRST TO 7</div>
 
-<div class="score-panel" id="panel-top">
-  <span class="score-label">TOP</span>
-  <span class="score-value top-color" id="score-top">0</span>
+<div class="score-panel" id="panel-left">
+  <span class="score-label color-left">LEFT</span>
+  <span class="score-value color-left" id="score-left">0</span>
 </div>
-<div class="score-panel" id="panel-bottom">
-  <span class="score-label">BOTTOM</span>
-  <span class="score-value bottom-color" id="score-bottom">0</span>
+<div class="score-panel" id="panel-right">
+  <span class="score-label color-right">RIGHT</span>
+  <span class="score-value color-right" id="score-right">0</span>
 </div>
 
 <div id="serve-banner"></div>
@@ -90,9 +103,8 @@
 <button id="restart-btn">リスタート</button>
 
 <div id="overlay">
-  <div class="win-banner" id="win-top">WIN!</div>
+  <div id="win-text">WIN!</div>
   <button id="rematch-btn">もう一回</button>
-  <div class="win-banner" id="win-bottom">WIN!</div>
 </div>
 
 <script type="importmap">
@@ -110,13 +122,14 @@ import * as CANNON from 'cannon-es';
 
 /* ========================================================================
    設定値
+   横長テーブル: ゴールは左右(X軸)、上下(Z軸)は普通の壁のみ
    ======================================================================== */
-const TABLE_HALF_W = 3.0;      // X: -3 〜 3
-const TABLE_HALF_L = 5.0;      // Z: -5 〜 5 (Z+ = BOTTOM側, Z- = TOP側)
+const TABLE_HALF_X = 5.2;      // X: 左右（ゴール軸）
+const TABLE_HALF_Z = 3.3;      // Z: 上下（壁のみ、ゴール無し）
 const WALL_T = 0.3;
-const WALL_H = 0.5;
-const GOAL_HALF_W = 1.15;
-const GOAL_TRIGGER_Z = TABLE_HALF_L + 0.55;
+const WALL_H = 0.32;
+const GOAL_HALF_W = 1.3;       // ゴール開口部の半幅（Z方向）
+const GOAL_TRIGGER_X = TABLE_HALF_X + 0.55;
 const MALLET_R = 0.55;
 const MALLET_H = 0.28;
 const PUCK_R = 0.36;
@@ -130,14 +143,23 @@ const WIN_SCORE = 7;
    ======================================================================== */
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0e14);
-scene.fog = new THREE.Fog(0x0a0e14, 14, 22);
+scene.background = new THREE.Color(0xeef5f2);
+// フラットな見た目にするためフォグは無し
 
-const aspect = window.innerWidth / window.innerHeight;
-const viewSize = TABLE_HALF_L + 2.2;
-const camera = new THREE.OrthographicCamera(
-  -viewSize * aspect, viewSize * aspect, viewSize, -viewSize, 0.1, 50
-);
+function computeFrustum() {
+  const aspect = window.innerWidth / window.innerHeight;
+  const halfW = TABLE_HALF_X + 2.0; // 左右の余白込み
+  const halfH = TABLE_HALF_Z + 1.4; // 上下の余白込み
+  if (aspect >= halfW / halfH) {
+    const vh = halfH;
+    return { vw: vh * aspect, vh };
+  }
+  const vw = halfW;
+  return { vw, vh: vw / aspect };
+}
+
+const { vw: initVW, vh: initVH } = computeFrustum();
+const camera = new THREE.OrthographicCamera(-initVW, initVW, initVH, -initVH, 0.1, 50);
 camera.up.set(0, 0, -1);
 camera.position.set(0, 14, 0.0001);
 camera.lookAt(0, 0, 0);
@@ -149,29 +171,29 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// ライト
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+// ライト（明るめ）
+scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight.position.set(4, 10, -3);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.set(1024, 1024);
-dirLight.shadow.camera.left = -8;
-dirLight.shadow.camera.right = 8;
-dirLight.shadow.camera.top = 8;
-dirLight.shadow.camera.bottom = -8;
+dirLight.shadow.camera.left = -10;
+dirLight.shadow.camera.right = 10;
+dirLight.shadow.camera.top = 10;
+dirLight.shadow.camera.bottom = -10;
 scene.add(dirLight);
 
 // テーブル面
-const tableGeo = new THREE.PlaneGeometry(TABLE_HALF_W * 2, TABLE_HALF_L * 2, 20, 20);
-const tableMat = new THREE.MeshStandardMaterial({ color: 0x0e2a3d, roughness: 0.35, metalness: 0.1 });
+const tableGeo = new THREE.PlaneGeometry(TABLE_HALF_X * 2, TABLE_HALF_Z * 2, 20, 20);
+const tableMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, metalness: 0.05 });
 const tableMesh = new THREE.Mesh(tableGeo, tableMat);
 tableMesh.rotation.x = -Math.PI / 2;
 tableMesh.receiveShadow = true;
 scene.add(tableMesh);
 
 // センターライン
-const centerLineGeo = new THREE.PlaneGeometry(TABLE_HALF_W * 2, 0.05);
-const centerLineMat = new THREE.MeshBasicMaterial({ color: 0x3a6a85 });
+const centerLineGeo = new THREE.PlaneGeometry(0.05, TABLE_HALF_Z * 2);
+const centerLineMat = new THREE.MeshBasicMaterial({ color: 0xc4d6d2 });
 const centerLine = new THREE.Mesh(centerLineGeo, centerLineMat);
 centerLine.rotation.x = -Math.PI / 2;
 centerLine.position.set(0, 0.01, 0);
@@ -179,48 +201,48 @@ scene.add(centerLine);
 
 // センターサークル
 const circleGeo = new THREE.RingGeometry(1.0, 1.06, 48);
-const circleMat = new THREE.MeshBasicMaterial({ color: 0x3a6a85, side: THREE.DoubleSide });
+const circleMat = new THREE.MeshBasicMaterial({ color: 0xc4d6d2, side: THREE.DoubleSide });
 const centerCircle = new THREE.Mesh(circleGeo, circleMat);
 centerCircle.rotation.x = -Math.PI / 2;
 centerCircle.position.set(0, 0.011, 0);
 scene.add(centerCircle);
 
-// ゴールゾーン表示
+// ゴールゾーン表示（左=緑, 右=オレンジ）
 function makeGoalZoneMesh(color) {
-  const g = new THREE.PlaneGeometry(GOAL_HALF_W * 2, 0.5);
+  const g = new THREE.PlaneGeometry(0.5, GOAL_HALF_W * 2);
   const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(g, m);
   mesh.rotation.x = -Math.PI / 2;
   mesh.position.y = 0.012;
   return mesh;
 }
-const goalZoneBottom = makeGoalZoneMesh(0x6bc7ff);
-goalZoneBottom.position.z = TABLE_HALF_L - 0.25;
-scene.add(goalZoneBottom);
-const goalZoneTop = makeGoalZoneMesh(0xff8a6b);
-goalZoneTop.position.z = -TABLE_HALF_L + 0.25;
-scene.add(goalZoneTop);
+const goalZoneLeft = makeGoalZoneMesh(0x34c96e);
+goalZoneLeft.position.x = -(TABLE_HALF_X - 0.25);
+scene.add(goalZoneLeft);
+const goalZoneRight = makeGoalZoneMesh(0xff8c42);
+goalZoneRight.position.x = TABLE_HALF_X - 0.25;
+scene.add(goalZoneRight);
 
-// 壁の見た目
+// 壁の見た目（黒っぽかった色を明るいミントに）
 function addWallMesh(x, z, w, d) {
   const geo = new THREE.BoxGeometry(w, WALL_H, d);
-  const mat = new THREE.MeshStandardMaterial({ color: 0x1b3a4d, roughness: 0.5 });
+  const mat = new THREE.MeshStandardMaterial({ color: 0x9fd0c3, roughness: 0.5 });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, WALL_H / 2, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   scene.add(mesh);
 }
-// 左右の長辺
-addWallMesh(-(TABLE_HALF_W + WALL_T / 2), 0, WALL_T, TABLE_HALF_L * 2 + WALL_T * 2);
-addWallMesh((TABLE_HALF_W + WALL_T / 2), 0, WALL_T, TABLE_HALF_L * 2 + WALL_T * 2);
-// 上下の短辺（ゴール開口部を残す2分割）
-const endSegW = TABLE_HALF_W - GOAL_HALF_W;
-[1, -1].forEach(sideZ => {
-  [1, -1].forEach(sideX => {
-    const x = sideX * (GOAL_HALF_W + endSegW / 2);
-    const z = sideZ * (TABLE_HALF_L + WALL_T / 2);
-    addWallMesh(x, z, endSegW, WALL_T);
+// 上下の長辺（ゴール無し）
+addWallMesh(0, -(TABLE_HALF_Z + WALL_T / 2), TABLE_HALF_X * 2 + WALL_T * 2, WALL_T);
+addWallMesh(0, (TABLE_HALF_Z + WALL_T / 2), TABLE_HALF_X * 2 + WALL_T * 2, WALL_T);
+// 左右の短辺（ゴール開口部を残す2分割）
+const endSegZ = TABLE_HALF_Z - GOAL_HALF_W;
+[1, -1].forEach(sideX => {
+  [1, -1].forEach(sideZ => {
+    const x = sideX * (TABLE_HALF_X + WALL_T / 2);
+    const z = sideZ * (GOAL_HALF_W + endSegZ / 2);
+    addWallMesh(x, z, WALL_T, endSegZ);
   });
 });
 
@@ -233,13 +255,14 @@ function makeMalletMesh(color) {
   mesh.receiveShadow = true;
   return mesh;
 }
-const malletBottomMesh = makeMalletMesh(0x6bc7ff);
-scene.add(malletBottomMesh);
-const malletTopMesh = makeMalletMesh(0xff8a6b);
-scene.add(malletTopMesh);
+const malletLeftMesh = makeMalletMesh(0x34c96e);
+scene.add(malletLeftMesh);
+const malletRightMesh = makeMalletMesh(0xff8c42);
+scene.add(malletRightMesh);
 
 const puckGeo = new THREE.CylinderGeometry(PUCK_R, PUCK_R, PUCK_H, 32);
-const puckMat = new THREE.MeshStandardMaterial({ color: 0xf2f6f8, roughness: 0.25, metalness: 0.1 });
+// グレーだったパックを緑/オレンジと喧嘩しない鮮やかなブルーに
+const puckMat = new THREE.MeshStandardMaterial({ color: 0x2f8fff, roughness: 0.25, metalness: 0.15, emissive: 0x2f8fff, emissiveIntensity: 0.12 });
 const puckMesh = new THREE.Mesh(puckGeo, puckMat);
 puckMesh.castShadow = true;
 puckMesh.receiveShadow = true;
@@ -269,13 +292,13 @@ function addWallBody(x, z, w, d) {
   body.position.set(x, TABLE_Y, z);
   world.addBody(body);
 }
-addWallBody(-(TABLE_HALF_W + WALL_T / 2), 0, WALL_T, TABLE_HALF_L * 2 + WALL_T * 2);
-addWallBody((TABLE_HALF_W + WALL_T / 2), 0, WALL_T, TABLE_HALF_L * 2 + WALL_T * 2);
-[1, -1].forEach(sideZ => {
-  [1, -1].forEach(sideX => {
-    const x = sideX * (GOAL_HALF_W + endSegW / 2);
-    const z = sideZ * (TABLE_HALF_L + WALL_T / 2);
-    addWallBody(x, z, endSegW, WALL_T);
+addWallBody(0, -(TABLE_HALF_Z + WALL_T / 2), TABLE_HALF_X * 2 + WALL_T * 2, WALL_T);
+addWallBody(0, (TABLE_HALF_Z + WALL_T / 2), TABLE_HALF_X * 2 + WALL_T * 2, WALL_T);
+[1, -1].forEach(sideX => {
+  [1, -1].forEach(sideZ => {
+    const x = sideX * (TABLE_HALF_X + WALL_T / 2);
+    const z = sideZ * (GOAL_HALF_W + endSegZ / 2);
+    addWallBody(x, z, WALL_T, endSegZ);
   });
 });
 
@@ -288,6 +311,9 @@ const puckBody = new CANNON.Body({
 });
 puckBody.addShape(new CANNON.Cylinder(PUCK_R, PUCK_R, PUCK_H, 20));
 puckBody.position.set(0, TABLE_Y, 0);
+// XZ平面上を滑るだけの2D的な動きに固定（縦に倒れたりしない）
+puckBody.angularFactor.set(0, 1, 0);
+puckBody.linearFactor.set(1, 0, 1);
 world.addBody(puckBody);
 
 // マレット（キネマティック：タッチで直接動かす）
@@ -302,10 +328,10 @@ function makeMalletBody() {
   world.addBody(body);
   return body;
 }
-const malletBottomBody = makeMalletBody();
-malletBottomBody.position.set(0, TABLE_Y, TABLE_HALF_L - 1.0);
-const malletTopBody = makeMalletBody();
-malletTopBody.position.set(0, TABLE_Y, -(TABLE_HALF_L - 1.0));
+const malletLeftBody = makeMalletBody();
+malletLeftBody.position.set(-(TABLE_HALF_X - 1.0), TABLE_Y, 0);
+const malletRightBody = makeMalletBody();
+malletRightBody.position.set((TABLE_HALF_X - 1.0), TABLE_Y, 0);
 
 /* ========================================================================
    Web Audio（効果音）
@@ -346,12 +372,12 @@ function playWin() {
 }
 
 /* ========================================================================
-   タッチ操作（左右2本指を screen上半分/下半分 で振り分け）
-   世界座標: Z+ = 画面下側(BOTTOM), Z- = 画面上側(TOP)
+   タッチ操作（画面左半分/右半分 で振り分け）
+   世界座標: X- = 画面左側(LEFT), X+ = 画面右側(RIGHT)
    ======================================================================== */
 const raycaster = new THREE.Raycaster();
 const tablePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -TABLE_Y);
-const touchTargets = { top: null, bottom: null }; // {touchId, worldX, worldZ}
+const touchTargets = { left: null, right: null }; // {touchId, worldX, worldZ}
 
 function screenToWorld(clientX, clientY) {
   const ndc = new THREE.Vector2(
@@ -365,18 +391,18 @@ function screenToWorld(clientX, clientY) {
 }
 
 function clampMallet(player, x, z) {
-  const cx = Math.max(-TABLE_HALF_W + MALLET_R, Math.min(TABLE_HALF_W - MALLET_R, x));
-  let cz;
-  if (player === 'bottom') {
-    cz = Math.max(MALLET_R * 0.5, Math.min(TABLE_HALF_L - MALLET_R, z));
+  const cz = Math.max(-(TABLE_HALF_Z - MALLET_R), Math.min(TABLE_HALF_Z - MALLET_R, z));
+  let cx;
+  if (player === 'left') {
+    cx = Math.max(-(TABLE_HALF_X - MALLET_R), Math.min(-MALLET_R * 0.5, x));
   } else {
-    cz = Math.min(-MALLET_R * 0.5, Math.max(-(TABLE_HALF_L - MALLET_R), z));
+    cx = Math.min((TABLE_HALF_X - MALLET_R), Math.max(MALLET_R * 0.5, x));
   }
   return { x: cx, z: cz };
 }
 
 function handleTouchPoint(clientX, clientY, touchId, phase) {
-  const player = clientY < window.innerHeight / 2 ? 'top' : 'bottom';
+  const player = clientX < window.innerWidth / 2 ? 'left' : 'right';
   if (phase === 'start' || phase === 'move') {
     const world = screenToWorld(clientX, clientY);
     const c = clampMallet(player, world.x, world.z);
@@ -404,7 +430,7 @@ renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false 
 renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: true });
 renderer.domElement.addEventListener('touchcancel', onTouchEnd, { passive: true });
 
-// マウス操作（PCでのテスト用フォールバック：クリック位置の半分で判定）
+// マウス操作（PCでのテスト用フォールバック）
 let mouseDown = false;
 renderer.domElement.addEventListener('mousedown', (e) => {
   ensureAudio();
@@ -431,13 +457,12 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 /* ========================================================================
    ゲーム状態
    ======================================================================== */
-const scoreEl = { top: document.getElementById('score-top'), bottom: document.getElementById('score-bottom') };
+const scoreEl = { left: document.getElementById('score-left'), right: document.getElementById('score-right') };
 const overlay = document.getElementById('overlay');
-const winTopEl = document.getElementById('win-top');
-const winBottomEl = document.getElementById('win-bottom');
+const winTextEl = document.getElementById('win-text');
 const serveBanner = document.getElementById('serve-banner');
 
-let score = { top: 0, bottom: 0 };
+let score = { left: 0, right: 0 };
 let gameOver = false;
 let puckFrozen = true;
 let serveTimer = 0;
@@ -458,33 +483,33 @@ function resetPuck(directionSign) {
 }
 
 function resetGame() {
-  score = { top: 0, bottom: 0 };
+  score = { left: 0, right: 0 };
   gameOver = false;
   overlay.classList.remove('show');
-  scoreEl.top.textContent = '0';
-  scoreEl.bottom.textContent = '0';
-  malletBottomBody.position.set(0, TABLE_Y, TABLE_HALF_L - 1.0);
-  malletTopBody.position.set(0, TABLE_Y, -(TABLE_HALF_L - 1.0));
+  scoreEl.left.textContent = '0';
+  scoreEl.right.textContent = '0';
+  malletLeftBody.position.set(-(TABLE_HALF_X - 1.0), TABLE_Y, 0);
+  malletRightBody.position.set((TABLE_HALF_X - 1.0), TABLE_Y, 0);
   resetPuck(Math.random() < 0.5 ? 1 : -1);
   showServeBanner('スタート！', 1200);
 }
 
-function onGoal(scoringPlayer) {
+// puckがどちら側のゴールを割ったか(golfSide)から、得点するプレイヤーを決める
+function onGoal(conceivedSide) {
+  const scoringPlayer = conceivedSide === 'left' ? 'right' : 'left';
   score[scoringPlayer]++;
   scoreEl[scoringPlayer].textContent = String(score[scoringPlayer]);
   playGoal();
   if (score[scoringPlayer] >= WIN_SCORE) {
     gameOver = true;
-    winTopEl.style.display = scoringPlayer === 'top' ? 'block' : 'none';
-    winBottomEl.style.display = scoringPlayer === 'bottom' ? 'block' : 'none';
-    winTopEl.textContent = 'TOP WIN!';
-    winBottomEl.textContent = 'BOTTOM WIN!';
+    winTextEl.textContent = (scoringPlayer === 'left' ? 'LEFT' : 'RIGHT') + ' WIN!';
+    winTextEl.style.color = scoringPlayer === 'left' ? '#34c96e' : '#ff8c42';
     overlay.classList.add('show');
     playWin();
   } else {
-    // 得点された側にサーブ権
-    resetPuck(scoringPlayer === 'top' ? -1 : 1);
-    showServeBanner(scoringPlayer === 'top' ? 'TOP の得点！' : 'BOTTOM の得点！', 1100);
+    // 失点した側にサーブ権
+    resetPuck(conceivedSide === 'left' ? -1 : 1);
+    showServeBanner((scoringPlayer === 'left' ? 'LEFT' : 'RIGHT') + ' の得点！', 1100);
   }
 }
 
@@ -495,37 +520,24 @@ document.getElementById('rematch-btn').addEventListener('click', resetGame);
    メインループ
    ======================================================================== */
 const clock = new THREE.Clock();
-const tmpVec = new THREE.Vector3();
 
 function updateMallet(body, player, dt) {
+  // キネマティックボディは velocity をセットするだけで world.step() が
+  // 位置を積分してくれる。position を直接動かすと二重に移動して暴走する。
   const t = touchTargets[player];
-  let targetX, targetZ;
-  if (t) {
-    targetX = t.x; targetZ = t.z;
-  } else {
-    // 指を離したら現在地でゆっくり減速停止
-    targetX = body.position.x + body.velocity.x * dt * 0.5;
-    targetZ = body.position.z + body.velocity.z * dt * 0.5;
-    const c = clampMallet(player, targetX, targetZ);
-    targetX = c.x; targetZ = c.z;
+  if (!t) {
+    body.velocity.set(0, 0, 0);
+    return;
   }
-  const dx = targetX - body.position.x;
-  const dz = targetZ - body.position.z;
+  const dx = t.x - body.position.x;
+  const dz = t.z - body.position.z;
   const dist = Math.sqrt(dx * dx + dz * dz);
-  const maxStep = MALLET_MAX_SPEED * dt;
-  let moveX, moveZ;
-  if (dist > maxStep && dist > 0.00001) {
-    moveX = (dx / dist) * maxStep;
-    moveZ = (dz / dist) * maxStep;
-  } else {
-    moveX = dx;
-    moveZ = dz;
+  if (dist < 0.001) {
+    body.velocity.set(0, 0, 0);
+    return;
   }
-  if (!t) { moveX *= 0.35; moveZ *= 0.35; } // 指なしはさらに緩やかに
-  body.velocity.set(moveX / dt, 0, moveZ / dt);
-  body.position.x += moveX;
-  body.position.z += moveZ;
-  body.position.y = TABLE_Y;
+  const speed = Math.min(dist / dt, MALLET_MAX_SPEED);
+  body.velocity.set((dx / dist) * speed, 0, (dz / dist) * speed);
 }
 
 let prevPuckSpeed = 0;
@@ -535,8 +547,8 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 1 / 30);
 
   if (!gameOver) {
-    updateMallet(malletBottomBody, 'bottom', dt);
-    updateMallet(malletTopBody, 'top', dt);
+    updateMallet(malletLeftBody, 'left', dt);
+    updateMallet(malletRightBody, 'right', dt);
 
     if (puckFrozen) {
       serveTimer -= dt;
@@ -545,7 +557,7 @@ function animate() {
       if (serveTimer <= 0) {
         puckFrozen = false;
         const dir = window.__pendingServeDir || 1;
-        puckBody.velocity.set((Math.random() - 0.5) * 2, 0, dir * 2.4);
+        puckBody.velocity.set(dir * 2.4, 0, (Math.random() - 0.5) * 2);
       }
     }
 
@@ -553,12 +565,18 @@ function animate() {
     puckBody.position.y = TABLE_Y;
     puckBody.velocity.y = 0;
 
+    // 念のためマレットをゾーン内・テーブル面上に固定
+    const cl = clampMallet('left', malletLeftBody.position.x, malletLeftBody.position.z);
+    malletLeftBody.position.set(cl.x, TABLE_Y, cl.z);
+    const cr = clampMallet('right', malletRightBody.position.x, malletRightBody.position.z);
+    malletRightBody.position.set(cr.x, TABLE_Y, cr.z);
+
     // 衝突音の簡易検知（速度変化ベース）
     const speed = puckBody.velocity.length();
     if (Math.abs(speed - prevPuckSpeed) > 2.2) {
-      const nearMalletB = puckBody.position.distanceTo(malletBottomBody.position) < MALLET_R + PUCK_R + 0.05;
-      const nearMalletT = puckBody.position.distanceTo(malletTopBody.position) < MALLET_R + PUCK_R + 0.05;
-      if (nearMalletB || nearMalletT) {
+      const nearMalletL = puckBody.position.distanceTo(malletLeftBody.position) < MALLET_R + PUCK_R + 0.05;
+      const nearMalletR = puckBody.position.distanceTo(malletRightBody.position) < MALLET_R + PUCK_R + 0.05;
+      if (nearMalletL || nearMalletR) {
         playHit(Math.abs(speed - prevPuckSpeed));
       } else {
         playWallBounce();
@@ -566,18 +584,18 @@ function animate() {
     }
     prevPuckSpeed = speed;
 
-    // ゴール判定
+    // ゴール判定（Xが右端を超えたら右ゴール = leftの得点、左端を超えたら左ゴール = rightの得点）
     if (!puckFrozen) {
-      if (puckBody.position.z > GOAL_TRIGGER_Z) onGoal('bottom');
-      else if (puckBody.position.z < -GOAL_TRIGGER_Z) onGoal('top');
+      if (puckBody.position.x > GOAL_TRIGGER_X) onGoal('right');
+      else if (puckBody.position.x < -GOAL_TRIGGER_X) onGoal('left');
     }
   }
 
   // 描画反映
   puckMesh.position.set(puckBody.position.x, puckBody.position.y + PUCK_H / 2, puckBody.position.z);
   puckMesh.quaternion.set(puckBody.quaternion.x, puckBody.quaternion.y, puckBody.quaternion.z, puckBody.quaternion.w);
-  malletBottomMesh.position.set(malletBottomBody.position.x, TABLE_Y + MALLET_H / 2, malletBottomBody.position.z);
-  malletTopMesh.position.set(malletTopBody.position.x, TABLE_Y + MALLET_H / 2, malletTopBody.position.z);
+  malletLeftMesh.position.set(malletLeftBody.position.x, TABLE_Y + MALLET_H / 2, malletLeftBody.position.z);
+  malletRightMesh.position.set(malletRightBody.position.x, TABLE_Y + MALLET_H / 2, malletRightBody.position.z);
 
   renderer.render(scene, camera);
 }
@@ -586,15 +604,23 @@ function animate() {
    リサイズ対応
    ======================================================================== */
 function onResize() {
-  const a = window.innerWidth / window.innerHeight;
-  camera.left = -viewSize * a;
-  camera.right = viewSize * a;
-  camera.top = viewSize;
-  camera.bottom = -viewSize;
+  const { vw, vh } = computeFrustum();
+  camera.left = -vw;
+  camera.right = vw;
+  camera.top = vh;
+  camera.bottom = -vh;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+
+// 横向きロックを試みる（対応ブラウザのみ・失敗しても無視）
+try {
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(() => {});
+  }
+} catch (e) { /* 未対応ブラウザは無視 */ }
 
 /* ========================================================================
    Playwright / デバッグ用フック
@@ -603,13 +629,13 @@ window.__game = {
   getScore: () => ({ ...score }),
   getPuckPosition: () => ({ x: puckBody.position.x, z: puckBody.position.z }),
   getMalletPositions: () => ({
-    bottom: { x: malletBottomBody.position.x, z: malletBottomBody.position.z },
-    top: { x: malletTopBody.position.x, z: malletTopBody.position.z },
+    left: { x: malletLeftBody.position.x, z: malletLeftBody.position.z },
+    right: { x: malletRightBody.position.x, z: malletRightBody.position.z },
   }),
   isGameOver: () => gameOver,
   isPuckFrozen: () => puckFrozen,
   resetGame,
-  forceGoal: (player) => onGoal(player),
+  forceGoal: (conceivedSide) => onGoal(conceivedSide),
   setMalletTarget: (player, x, z) => {
     const c = clampMallet(player, x, z);
     touchTargets[player] = { touchId: 'debug', x: c.x, z: c.z };
