@@ -401,11 +401,17 @@ function clampMallet(player, x, z) {
   return { x: cx, z: cz };
 }
 
+// 指がマレットの真上に乗って隠れてしまわないよう、タッチ位置から
+// フィールド中央方向へ少しずらした位置をマレットの中心にする
+// （指はマレットの「外側の端」に触れる形になり、丸い本体が指の先に見える）
+const TOUCH_OFFSET_X = MALLET_R * 1.6;
+
 function handleTouchPoint(clientX, clientY, touchId, phase) {
   const player = clientX < window.innerWidth / 2 ? 'left' : 'right';
   if (phase === 'start' || phase === 'move') {
     const world = screenToWorld(clientX, clientY);
-    const c = clampMallet(player, world.x, world.z);
+    const offsetX = player === 'left' ? TOUCH_OFFSET_X : -TOUCH_OFFSET_X;
+    const c = clampMallet(player, world.x + offsetX, world.z);
     touchTargets[player] = { touchId, x: c.x, z: c.z };
   } else if (phase === 'end') {
     if (touchTargets[player] && touchTargets[player].touchId === touchId) {
